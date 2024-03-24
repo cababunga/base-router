@@ -27,7 +27,7 @@ const listAdd = async (req, res) => { /* await addToList(await req.json()); */ r
 const listRemove = async (req, res) => { /* await removeFromList(); */ response(res); };
 
 const app = router();
-app.all("/", cors("GET, POST, PATCH, DELETE", "x-session-id, content-type"));
+app.all("/", cors({methods: "POST, DELETE", headers: "x-session-id, content-type"}));
 
 app.add("POST", "/api/1/list", authenticate, listAdd);
 app.add("DELETE", "/api/1/list/:id", authenticate, listRemove);

@@ -1,5 +1,5 @@
 {
-  "name": "base-router",
+  "name": "@cababunga/router",
   "version": "0.5.1",
   "description": "Request router and middleware stacker with async/await API and zero dependencies",
   "main": "router",

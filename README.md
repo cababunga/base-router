@@ -2,12 +2,20 @@
 
 ## Router
 
+### Install
+
+```shell
+npm i @cababunga/router
+```
+
+### Use
+
 HTTP request router and middleware stacker.
 
 Creating router is easy.
 
 ```javascript
-const {router} = require("base-router");
+const {router} = require("@cababunga/router");
 const app = router();
 ```
 
@@ -30,16 +38,43 @@ Route is a path prefix that needs to be matched with the `url` from request. If 
 
 The rest of the parameters are middleware and a handler. The difference between middleware and handler is that middleware doesn't call `response.end()`. If route only has associated middleware and no final handler, this middleware will be executed for each path for which this route is a prefix.
 
-## CORS middleware
+### CORS middleware
 
-    Middleware for adding CORS headers.
+Middleware for adding CORS headers.
+
+```javascript
+cors(options)
+```
+
+The following options are recognized:
+
+**methods**
+
+ Will be added as the value for the `Access-Control-Allow-Methods` header.
+
+ **origin**
+
+ Will be added as the value for the `Access-Control-Allow-Origin` header. If omitted, `req.headers["origin"]` will be used.
+
+ **headers**
+ 
+ Will be added as the value for the `Access-Control-Allow-Headers` header.
+
+ **credentials**
+
+ Will be added as the value for the `Access-Control-Allow-Credentials` header.
+
+```javascript
+const cors = require("@cababunga/router/cors");
+cors({methods: "GET, POST", headers: "content-type"});
+```
 
 
-## Examples
+### Examples
 
 ```javascript
 const http = require("http");
-const {router, cors} = require("base-router");
+const {router, cors} = require("@cababunga/router");
 
 const response = (res, data, code) => {
     if (data === undefined)
@@ -66,7 +101,7 @@ const listAdd = async (req, res) => { /* await addToList(await req.json()); */ r
 const listRemove = async (req, res) => { /* await removeFromList(); */ response(res); };
 
 const app = router();
-app.all("/", cors("GET, POST, PATCH, DELETE", "x-session-id, content-type"));
+app.all("/", cors({methods: "GET, POST, PATCH, DELETE", headers: "x-session-id, content-type"}));
 
 app.add("POST", "/api/1/list", authenticate, listAdd);
 app.add("DELETE", "/api/1/list/:id", authenticate, listRemove);
