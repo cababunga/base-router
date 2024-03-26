@@ -74,7 +74,9 @@ cors({methods: "GET, POST", headers: "content-type"});
 
 ```javascript
 const http = require("http");
-const {router, cors} = require("@cababunga/router");
+const router = require("@cababunga/router");
+const cors = require("@cababunga/router/cors");
+const accesslog = require("@cababunga/accesslog");
 
 const response = (res, data, code) => {
     if (data === undefined)
@@ -96,12 +98,13 @@ const authenticate = async (req, res) => {
     req.session = session;
 };
 
-const getSession = async sessionId => { /* Go check some store */ return Promise.resolve(1); };
+const getSession = async sessionId => { /* await getSession(sessionId) */ return Promise.resolve(1); };
 const listAdd = async (req, res) => { /* await addToList(await req.json()); */ response(res, {ok: true}); };
 const listRemove = async (req, res) => { /* await removeFromList(); */ response(res); };
 
 const app = router();
 app.all("/", cors({methods: "GET, POST, PATCH, DELETE", headers: "x-session-id, content-type"}));
+app.all("/", accesslog(console.log, {skip: "/health-check"}));
 
 app.add("POST", "/api/1/list", authenticate, listAdd);
 app.add("DELETE", "/api/1/list/:id", authenticate, listRemove);
