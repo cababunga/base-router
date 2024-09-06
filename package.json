@@ -1,15 +1,24 @@
 {
   "name": "@cababunga/router",
   "version": "0.5.2",
-  "description": "Request router and middleware stacker with async/await API and zero dependencies",
-  "main": "router",
+  "description": "Node.js request router and middleware stacker with async/await API and zero dependencies",
+  "main": "dist/router",
+  "exports": {
+    ".": "./dist/router.js",
+    "./cors": "./dist/cors.js"
+  },
   "scripts": {
     "test": "mocha *.test.js",
-    "bump": "npm version ${BUMP:=patch} && git push && git push --tags"
+    "bump": "npm version ${BUMP:=patch} && git push && git push --tags",
+    "prepack": "tsc"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/cababunga/base-router"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.5.3",
+    "typescript": "^5.5.4"
+  }
 }

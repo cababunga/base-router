@@ -1,18 +1,34 @@
-// @ts-check
-"use strict";
+import { createServer, Server, IncomingMessage, ServerResponse } from "node:http";
 
-const query = (req, qs) => {
-    if (!qs)
+export interface Request extends IncomingMessage {
+    originalUrl?: string;
+    json?: any;
+    param?: { [key: string]: string; };
+    baseUrl: string;
+    path: string;
+    query: any;
+    _cache: {
+        query?: { [key: string]: string; },
+        body?: string,
+        json: any,
+    }
+}
+
+type Handler = (req: Request, res: ServerResponse) => void;
+type ErrorHandler = (error: Error, req: Request, res: ServerResponse) => void;
+
+const query = (req: Request, query: string) => {
+    if (!query)
         return {};
 
     if (!req._cache.query)
         req._cache.query = Object.fromEntries(
-                qs.split("&").map(x => x.split("=").map(y => decodeURIComponent(y))));
+            query.split("&").map(x => x.split("=").map(y => decodeURIComponent(y))));
 
     return req._cache.query;
 };
 
-const json = (req, res, maxJsonClientBody) => {
+const json = (req: Request, res: ServerResponse, maxJsonClientBody: number) => {
     if (req.headers["content-type"] != "application/json")
         return;
 
@@ -22,16 +38,16 @@ const json = (req, res, maxJsonClientBody) => {
     return new Promise((resolve, reject) => {
         const lengthError = () => {
             res.writeHead(413).end();
-            req.connection.destroy();
+            req.socket.destroy();
             reject(new Error("Length error"));
         };
-        const len = req.headers["content-length"];
+        const len = Number(req.headers["content-length"] || "0");
         if (len > maxJsonClientBody)
             return lengthError();
 
         const encoding = req.headers["content-encoding"];
-        req.setEncoding(encoding || "utf8");
-        const body = [];
+        req.setEncoding((encoding || "utf8") as BufferEncoding);
+        const body: string[] = [];
         let bodyLen = 0;
         req.on("data", data => {
             if (bodyLen + data.length > len)
@@ -54,49 +70,59 @@ const json = (req, res, maxJsonClientBody) => {
     });
 };
 
-class Router {
-    #maxJsonClientBody;
-    #routes;
-    #errorHandler;
+interface Route {
+    methods: (string | undefined)[];
+    path: string | RegExp;
+    handlers: Handler[];
+}
+
+export class Router {
+    #maxJsonClientBody: number;
+    #routes: Route[];
+    #errorHandler: ErrorHandler;
 
     constructor({maxJsonClientBody=1<<18}={}) {
         this.#maxJsonClientBody = maxJsonClientBody;
         this.#routes = [];
-        this.#errorHandler = (err, req, res) =>
+        this.#errorHandler = (err: Error, _req, res: ServerResponse) =>
             res.writeHead(500, {"Content-Type": "application/json"})
                .end(JSON.stringify({"msg": err.message}));
     }
 
-    add(methods, path, ...handlers) {
-        if (methods.constructor == String)
+    add(methods: string[] | string, uri: string, ...handlers: Handler[]) {
+        if (!Array.isArray(methods))
             methods = [methods];
         if (methods.includes("GET") && !methods.includes("HEAD"))
             methods.push("HEAD");
-        if (path != "/") {
-            let pathRe = path.replace(/:([^/]+)/g, (m, c) =>`(?<${c}>[^/]*)`);
-            if (!/:\w+$/.test(path))
+
+        let path: string | RegExp;
+        if (uri == "/")
+            path = uri;
+        else {
+            let pathRe = uri.replace(/:([^/]+)/g, (_m, c) =>`(?<${c}>[^/]*)`);
+            if (!/:\w+$/.test(uri))
                 pathRe += "\\b";
             path = RegExp(`^${pathRe}`);
         }
         this.#routes.push({methods, path, handlers});
     }
 
-    get(path, ...handlers) {
-        this.add(["GET"], path, ...handlers);
+    get(uri: string, ...handlers: Handler[]) {
+        this.add(["GET"], uri, ...handlers);
     }
 
-    all(path, ...handlers) {
-        this.add(["*"], path, ...handlers);
+    all(uri: string, ...handlers: Handler[]) {
+        this.add(["*"], uri, ...handlers);
     }
 
-    error(handler) {
+    error(handler: ErrorHandler) {
         this.#errorHandler = handler;
     }
 
-    async route(req, res) {
-        req.originalUrl = req.url;
-        const [path, qs] = req.url.split("?");
-        req._cache = {};
+    async route(req: Request, res: ServerResponse) {
+        req.originalUrl = req.url || "";
+        const [path, qs] = req.originalUrl.split("?");
+        //req._cache = {};
 
         const parseQs = {get: () => query(req, qs)};
         Object.defineProperty(req, "query", parseQs);
@@ -120,7 +146,7 @@ class Router {
                 try {
                     await handler(req, res);
                 }
-                catch (e) {
+                catch (e: any) {
                     await this.#errorHandler(e, req, res);
                     break routing;
                 }
@@ -132,17 +158,16 @@ class Router {
             res.writeHead(404, {"Content-Type": "application/json"})
                .end('{"msg":"Not found"}');
     }
+
+    listen(port?: number, addr?: string): Server<typeof IncomingMessage, typeof ServerResponse> {
+        const app: any = this.route.bind(this);
+        const server = createServer(app);
+        return server.listen(port, addr);
+    }
 }
 
 
-const createRouter = opts => {
-    const router = new Router(opts);
-    const app = router.route.bind(router);
-    for (const method of ["add", "get", "all", "error"])
-        app[method] = router[method].bind(router);
-    return app;
-};
+const createRouter = (options?: any) => new Router(options);
 
 
-module.exports = createRouter;
-
+export default createRouter;

@@ -1,6 +1,6 @@
 const http = require("http");
-const router = require("..");
-const cors = require("../cors");
+const router = require("@cababunga/router");
+const cors = require("@cababunga/router/cors");
 
 const response = (res, data, code) => {
     if (data === undefined)
