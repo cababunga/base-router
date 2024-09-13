@@ -1,0 +1,6 @@
+*.tgz
+tsconfig.json
+.gitignore
+/src/
+/test/
+/dist/test/

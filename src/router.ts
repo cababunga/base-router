@@ -1,5 +1,11 @@
 import { createServer, Server, IncomingMessage, ServerResponse } from "node:http";
 
+interface Cache {
+    query?: { [key: string]: string; };
+    body?: string;
+    json: any;
+}
+
 export interface Request extends IncomingMessage {
     originalUrl?: string;
     json?: any;
@@ -7,11 +13,7 @@ export interface Request extends IncomingMessage {
     baseUrl: string;
     path: string;
     query: any;
-    _cache: {
-        query?: { [key: string]: string; },
-        body?: string,
-        json: any,
-    }
+    _cache: Cache;
 }
 
 type Handler = (req: Request, res: ServerResponse) => void;
@@ -20,6 +22,9 @@ type ErrorHandler = (error: Error, req: Request, res: ServerResponse) => void;
 const query = (req: Request, query: string) => {
     if (!query)
         return {};
+
+    if (!req._cache)
+        req._cache = {} as Cache;
 
     if (!req._cache.query)
         req._cache.query = Object.fromEntries(

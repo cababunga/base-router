@@ -8,7 +8,7 @@
     "./cors": "./dist/cors.js"
   },
   "scripts": {
-    "test": "mocha *.test.js",
+    "test": "mocha --import=tsx src/*.test.ts",
     "bump": "npm version ${BUMP:=patch} && git push && git push --tags",
     "prepack": "tsc"
   },
@@ -18,7 +18,9 @@
   },
   "license": "ISC",
   "devDependencies": {
+    "@types/mocha": "^10.0.8",
     "@types/node": "^22.5.3",
+    "tsx": "^4.19.1",
     "typescript": "^5.5.4"
   }
 }
