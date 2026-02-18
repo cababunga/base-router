@@ -1,6 +1,6 @@
 {
   "name": "@cababunga/router",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "description": "Node.js request router and middleware stacker with async/await API and zero dependencies",
   "main": "dist/src/router.js",
   "exports": {
