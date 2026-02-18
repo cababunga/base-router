@@ -33,4 +33,4 @@ app.add("DELETE", "/api/1/list/:id", authenticate, listRemove);
 app.error((err, _req, res) => errorResponse(res, 500, err.message));
 
 const server = http.createServer(app);
-server.listen(3333, () => console.log("Listening on port", server.address().port));
+server.listen(() => console.log("Listening on port", server.address().port));
