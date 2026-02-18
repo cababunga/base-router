@@ -1,6 +1,6 @@
 const http = require("http");
-const router = require("@cababunga/router");
-const cors = require("@cababunga/router/cors");
+const { default: router } = require("@cababunga/router");
+const { default: cors } = require("@cababunga/router/cors");
 
 const response = (res, data, code) => {
     if (data === undefined)
@@ -31,7 +31,7 @@ app.all("/", cors({methods: "POST, DELETE", headers: "x-session-id, content-type
 
 app.add("POST", "/api/1/list", authenticate, listAdd);
 app.add("DELETE", "/api/1/list/:id", authenticate, listRemove);
-app.error((err, req, res) => (res, err) => errorResponse(res, 500, err.message));
+app.error((err, _req, res) => errorResponse(res, 500, err.message));
 
 const server = http.createServer(app);
-server.listen(() => console.log("Listening on port", server.address().port));
+server.listen(3333, () => console.log("Listening on port", server.address().port));

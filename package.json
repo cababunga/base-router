@@ -3,6 +3,7 @@
   "version": "0.7.0",
   "description": "Node.js request router and middleware stacker with async/await API and zero dependencies",
   "main": "dist/src/router.js",
+  "type": "commonjs",
   "exports": {
     ".": "./dist/src/router.js",
     "./cors": "./dist/src/cors.js"

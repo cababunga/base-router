@@ -85,6 +85,10 @@ interface Route {
     handlers: Handler[];
 }
 
+export type RouterFunction = {
+    (req: IncomingRequest, res: ServerResponse): Promise<void>;
+} & Router;
+
 export class Router {
     private maxJsonClientBody: number;
     private routes: Route[];
@@ -173,9 +177,18 @@ export class Router {
         const server = createServer(app);
         return server.listen(port, addr);
     }
+
+    static create(options?: {maxJsonClientBody?: number}): RouterFunction {
+        const router = new Router(options);
+        const route = router.route.bind(router);
+        const callable = ((req: IncomingRequest, res: ServerResponse) => route(req, res)) as RouterFunction;
+        const methods: (keyof Router)[] = ["get", "all", "add", "error", "listen"];
+        for (const method of methods) {
+            (callable as any)[method] = router[method].bind(router);
+        }
+        callable.route = route;
+        return callable;
+    }
 }
 
-
-const createRouter = (options?: any) => new Router(options);
-
-export default createRouter;
+export default Router.create;
