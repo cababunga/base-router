@@ -1,6 +1,6 @@
-const http = require("http");
-const { default: router } = require("@cababunga/router");
-const { default: cors } = require("@cababunga/router/cors");
+import http from "http";
+import router from "@cababunga/router";
+import cors from "@cababunga/router/cors";
 
 const response = (res, data, code) => {
     if (data === undefined)
@@ -13,7 +13,6 @@ const errorResponse = (res, code, message) =>
     res.writeHead(code, {"Content-Type": "application/json"})
         .end(JSON.stringify({err: true, msg: message}));
 
-// Middleware for authentication
 const authenticate = async (req, res) => {
     const sessionId = req.headers["x-session-id"];
     const session = await getSession(sessionId);
