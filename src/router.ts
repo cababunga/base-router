@@ -16,8 +16,8 @@ export interface IncomingRequest extends IncomingMessage {
     _cache: Cache;
 }
 
-type Handler = (req: IncomingRequest, res: ServerResponse) => void;
-type ErrorHandler = (error: Error, req: IncomingRequest, res: ServerResponse) => void;
+export type RouteHandler = (req: IncomingRequest, res: ServerResponse) => void | Promise<void>;
+export type ErrorHandler = (error: Error, req: IncomingRequest, res: ServerResponse) => void;
 
 const query = (req: IncomingRequest, query: string) => {
     if (!query)
@@ -82,7 +82,7 @@ const json = (req: IncomingRequest, res: ServerResponse, maxJsonClientBody: numb
 interface Route {
     methods: (string | undefined)[];
     path: string | RegExp;
-    handlers: Handler[];
+    handlers: RouteHandler[];
 }
 
 export type RouterFunction = {
@@ -102,7 +102,7 @@ export class Router {
                .end(JSON.stringify({"msg": err.message}));
     }
 
-    add(methods: string[] | string, uri: string, ...handlers: Handler[]) {
+    add(methods: string[] | string, uri: string, ...handlers: RouteHandler[]) {
         if (!Array.isArray(methods))
             methods = [methods];
         if (methods.includes("GET") && !methods.includes("HEAD"))
@@ -120,11 +120,11 @@ export class Router {
         this.routes.push({methods, path, handlers});
     }
 
-    get(uri: string, ...handlers: Handler[]) {
+    get(uri: string, ...handlers: RouteHandler[]) {
         this.add(["GET"], uri, ...handlers);
     }
 
-    all(uri: string, ...handlers: Handler[]) {
+    all(uri: string, ...handlers: RouteHandler[]) {
         this.add(["*"], uri, ...handlers);
     }
 
