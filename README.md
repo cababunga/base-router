@@ -15,7 +15,7 @@ HTTP request router and middleware stacker.
 Creating router is easy.
 
 ```javascript
-const {router} = require("@cababunga/router");
+import router from "@cababunga/router";
 const app = router();
 ```
 
@@ -43,6 +43,7 @@ The rest of the parameters are middleware and a handler. The difference between 
 Middleware for adding CORS headers.
 
 ```javascript
+import cors from "@cababunga/router/cors";
 cors(options)
 ```
 
@@ -73,9 +74,9 @@ cors({methods: "GET, POST", headers: "content-type"});
 ### Examples
 
 ```javascript
-const http = require("http");
-const router = require("@cababunga/router");
-const cors = require("@cababunga/router/cors");
+import http from "http";
+import router from "@cababunga/router";
+import cors from "@cababunga/router/cors";
 const accesslog = require("@cababunga/accesslog");
 
 const response = (res, data, code) => {
@@ -110,5 +111,5 @@ app.add("POST", "/api/1/list", authenticate, listAdd);
 app.add("DELETE", "/api/1/list/:id", authenticate, listRemove);
 app.error((err, req, res) => (res, err) => errorResponse(res, 500, err.message));
 
-http.createServer(app).listen(1234);;
+app.listen(1234);
 ```
